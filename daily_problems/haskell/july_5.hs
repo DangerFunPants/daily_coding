@@ -19,6 +19,9 @@
 -- should return true. The same regular expression on the string "chats" should
 -- return false.
 
+{-# LANGUAGE TemplateHaskell #-}
+
+import Language.Haskell.TH
 import Text.ParserCombinators.Parsec
 import Text.Parsec.Char
 
@@ -26,7 +29,25 @@ data Regex
     = Plain Char
     | Kleene Regex
     | Wildcard
+    | Conj Regex Regex
+    | Disjunct Regex Regex
     deriving (Show)
+
+regex :: QuasiQuoter
+regex = QuasiQuoter 
+    { quoteExp = compileRegex
+    , quotePat = notHandled "patterns"
+    , quoteType = notHandled "types"
+    , quoteDec = notHandles "declarations"
+    }
+    where notHandled things = error $ 
+            things ++ " are not handled by the regex quasiquoter."
+
+compile :: String -> Q Exp
+compile s = 
+    case (parseRegEx s) of
+        Left err -> fail (show err)
+        Right regex
 
 regexList = (many1 regexExpr)
 regexExpr = choice [(try star), plain, wc]
