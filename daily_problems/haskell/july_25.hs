@@ -34,6 +34,16 @@ rand5 = getStdRandom (randomR (1,5))
 
 -- Apparently this actually isn't doable without the possibility of infinite 
 -- runtime ... 
+--
+-- Runtime
+--  P{r > 20} = 4 / 25
+--  P{Terminating on the Nth iteration} = 1 - (4 / 25)^N
+--  lim_{n->inf} (1 - (4 / 25)^N) = 1
+--  Thus P{Terminating on the Nth iteration} tends to 1 as N tends to infinity.
+--  
+--  For the sequence P_0 ... P_N:
+--      P_N / P_{N-1} = 4/25
+--  So the values of the sequence are decreasing exponentially. 
 
 indexOf :: (Eq a) => a -> [a] -> Int
 indexOf v (a:as) = if v == a
