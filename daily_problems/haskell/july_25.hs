@@ -6,6 +6,7 @@
 
 import System.Random
 import Control.Monad (mapM)
+import Data.List.Unique
 
 rand5 :: IO Int
 rand5 = getStdRandom (randomR (1,5))
@@ -30,12 +31,28 @@ rand5 = getStdRandom (randomR (1,5))
 --
 -- This generalizes the problem to generating a random number that is a multiple
 -- of 7 using a series of random numbers ranging from 1 .. 5
---
---
+
+-- Apparently this actually isn't doable without the possibility of infinite 
+-- runtime ... 
+
+indexOf :: (Eq a) => a -> [a] -> Int
+indexOf v (a:as) = if v == a
+                        then 0
+                        else 1 + (indexOf v as)
 rand7 :: IO Int
 rand7 = do
+    r1 <- rand5
+    r2 <- rand5
+    let res = indexOf (r1, r2) [(a,b) | a<-[1..5],b<-[1..5]]
 
+    if res > 20
+        then rand7
+        else return $ (res `mod` 7) + 1
 
+mkHistogram' as es = fmap (\e -> length (filter (== e) as)) es
+
+mkHistogram :: (Eq a, Ord a) => [a] -> [Int]
+mkHistogram as = mkHistogram' as (sortUniq as)
 
 main :: IO ()
 main = do
