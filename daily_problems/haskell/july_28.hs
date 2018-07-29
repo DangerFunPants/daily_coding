@@ -18,20 +18,14 @@
 --   b   c
 --  / \ / \
 -- d  e f  g
+--
+-- Note that the tree needs to be "Full" Meaning that each node
+-- has either 0 or 2 children. 
 
 data BTree a 
     = Node a (BTree a) (BTree a)
     | Leaf a
     deriving (Show)
-
-
--- reconstruct :: String -> ((BTree Char), String)
--- reconstruct (e:es) = (thisNode, rem')
---     where
---         thisNode = Node e leftCall rightCall
---         (leftCall, rem) = reconstruct es
---         (rightCall, rem') = reconstruct rem
--- reconstruct [] = (Nil, [])
 
 testTree = Node 'a' (Node 'b' (Leaf 'd') (Leaf 'e')) (Node 'c' (Leaf 'f') (Leaf 'g'))
 
@@ -41,14 +35,30 @@ inOrder (Leaf v) = [v]
 preOrder (Node v lc rc) = [v]++(preOrder lc)++(preOrder rc)
 preOrder (Leaf v) = [v]
 
+smallTree = Node 'a' (Leaf 'b') (Leaf 'c')
 
+leftHalf :: [a] -> [a]
+leftHalf as = take (l `div` 2) as
+    where
+        l = length as
 
--- test1 :: IO ()
--- test1 = do
---     let ts = ['a', 'b', 'd', 'e', 'f', 'g' ]
---         res = reconstruct ts
---     putStrLn $ show res
+rightHalf :: [a] -> [a]
+rightHalf as = reverse (take (l `div` 2) (reverse as))
+    where
+        l = length as
 
-test1 = putStrLn "Hola" 
+reconstruct (a:[]) ps = ((Leaf a), (tail ps))
+reconstruct inO (p:ps) = (thisNode, ps'')
+    where
+        (lc, ps')  = reconstruct (leftHalf inO) ps
+        (rc, ps'') = reconstruct (rightHalf inO) ps'
+        thisNode = Node p lc rc
+
+test1 :: IO ()
+test1 = do
+    let (io, po) = ((inOrder testTree), (preOrder testTree))
+        res = reconstruct io po
+    putStrLn $ show res
+
 main :: IO ()
 main = test1
