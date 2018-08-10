@@ -47,6 +47,12 @@ binSearch as elem off = if elem == midElem
         inLeft = elem < midElem
         (leftHalf, rightHalf) = splitAt midPoint as
 
+test1 :: IO ()
+test1 = do
+    let ts = [ 13, 18, 25, 2, 8, 10 ]
+        res = splitList ts 8 0
+    putStrLn $ show res
+
 main :: IO ()
 main = do
-    putStrLn $ "Hola Mundas!"
+    test1
