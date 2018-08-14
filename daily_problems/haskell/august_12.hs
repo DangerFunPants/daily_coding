@@ -1,39 +1,27 @@
--- This problem was asked by Microsoft.
+-- This problem was asked by Google.
 -- 
--- Given a 2D matrix of characters and a target word, write a function that 
--- returns whether the word can be found in the matrix by going left-to-right, 
--- or up-to-down.
+-- A knight's tour is a sequence of moves by a knight on a chessboard such that 
+-- all squares are visited once.
 -- 
--- For example, given the following matrix:
--- 
--- [['F', 'A', 'C', 'I'],
---  ['O', 'B', 'Q', 'P'],
---  ['A', 'N', 'O', 'B'],
---  ['M', 'A', 'S', 'S']]
--- 
--- and the target word 'FOAM', you should return true, since it's the leftmost 
--- column. Similarly, given the target word 'MASS', you should return true, 
--- since it's the last row.
+-- Given N, write a function to return the number of knight's tours on an N by 
+-- N chessboard.
 
-wordExists mat word = vert || horz
+tour :: (Int, Int) -> [(Int, Int)] -> Int
+tour _ [] = 1
+tour (ci,cj) toVisit = sum recCall
     where
-        horz = word `elem` mat
-        vertWords = fmap (\w -> fmap (\str -> str !! w) mat) [0..(pred $ length mat)]
-        vert = word `elem` vertWords
+        nextMove = [ (ci+2,cj+1)
+                   , (ci+2,cj-1)
+                   , (ci-2,cj+1)
+                   , (ci-2,cj-1)
+                   , (ci+1,cj+2)
+                   , (ci+1,cj-2)
+                   , (ci-1,cj+2)
+                   , (ci-1,cj-2)
+                   ]
+        validMoves = filter (\e -> e `elem` toVisit) nextMove
+        recCall = fmap (\p -> tour p (filter (\p' -> (p' /= p)) toVisit)) validMoves
 
-testWord :: String -> Bool -> Bool -> String
-testWord w e a = w ++ " should be " ++ show e ++ " was " ++ show a
+nTour :: Int -> [Int]
+nTour n = fmap (\t -> tour t [(i,j) | i<-[1..n],j<-[1..n], (i,j) /= t]) [(i,j) | i<-[1..n], j<-[1..n]]
 
-test1 :: IO ()
-test1 = do
-    let ts = [ "FACI"
-             , "OBQP"
-             , "ANOB"
-             , "MASS"
-             ]
-        wordList = [ ("FOAM", True), ("MASS", True), ("TEST", False) ]
-        res = fmap (\(w,r) -> testWord w r (wordExists ts w)) wordList
-    putStrLn $ show res
-
-main :: IO ()
-main = test1
