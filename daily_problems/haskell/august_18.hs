@@ -8,13 +8,16 @@
 -- 
 -- You can assume the list has at least three integers.
 
-import Control.Monad (filterM)
-
-pset :: [a] -> [[a]]
-pset = filterM (\_ -> [True, False])
+import Data.List (sort)
 
 maxProd :: (Num a, Ord a) => [a] -> a
-maxProd s = maximum $ fmap (foldl1 (*)) [ s' | s' <- (pset s), (length s') == 3 ]
+maxProd s = if t1 > t2 then t1 else t2
+    where
+        sorted = sort s
+        last3 = take 3 (reverse sorted)
+        first2 = take 2 sorted
+        t1 = foldl1 (*) last3
+        t2 = foldl1 (*) (last sorted:first2)
 
 test1 :: IO ()
 test1 = do
