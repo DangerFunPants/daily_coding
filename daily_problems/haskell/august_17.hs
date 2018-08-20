@@ -42,13 +42,20 @@ countPairs [] _ = 0
 
 test1 :: IO ()
 test1 = do
-    let ts = [ (0, 0)
-             , (1, 2)
-             , (2, 2)
-             , (4, 0)
-             ]
-        mod = fmap (\(i,j) -> (succ i, succ j)) ts
-        res = countPairs mod 5
+    let ts = [ [ (0, 0)
+               , (1, 2)
+               , (2, 2)
+               , (4, 0)
+               ]
+             , [ (0, 0)
+               , (1, 2)
+               , (2, 2)
+               , (4, 0)
+	       , (0, 4)
+               ]
+	     ]
+        mod = fmap (fmap (\(i,j) -> (succ i, succ j))) ts
+        res = fmap (\m -> countPairs m 5) mod
     putStrLn $ show res
 
 main :: IO ()
