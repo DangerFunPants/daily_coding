@@ -55,7 +55,9 @@ bellmanFord es vs s = bellmanFord' vertC dist pred es
         pred = M.fromList $ zip [1..vertC] [0..]
 
 checkWeight :: (Num a, Ord a)
-            => [(Int, Int, a)] -> M.Map Int a -> Maybe (M.Map Int a)
+            => [(Int, Int, a)] 
+            -> M.Map Int a 
+            -> Maybe (M.Map Int a)
 checkWeight [] dist = return dist
 checkWeight ((u, v, w):es) dist = do
     du <- M.lookup u dist
@@ -65,7 +67,9 @@ checkWeight ((u, v, w):es) dist = do
         else checkWeight es dist
 
 addEdge :: (Num a, Ord a) 
-        => (Int, Int, a) -> [(Int, Int, a)] -> [(Int, Int, a)]
+        => (Int, Int, a) 
+        -> [(Int, Int, a)] 
+        -> [(Int, Int, a)]
 addEdge e@(u, v, w) es = e:((v, u, w):es)
 
 testBF :: IO ()
@@ -89,7 +93,7 @@ testArbitrage = do
              , (2, 3, 277.5)
              , (3, 1, 0.0115)
              ]
-        es = fmap (\(u, v, w) -> (u,v,(-(log w / log 10)))) ts
+        es = fmap (\(u, v, w) -> (u,v,-(log w))) ts
         res = bellmanFord es [1..3] 1
     putStrLn $ show res
 
