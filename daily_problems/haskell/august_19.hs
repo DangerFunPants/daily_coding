@@ -14,7 +14,7 @@ perfect = [ n | n<-[1..], (sum (fmap digitToInt (show n))) == 10 ]
 test1 :: IO ()
 test1 = do
     let ts = [0..10]
-        res = fmap (\i -> perfect !! i) ts
+        res = fmap (perfect !!) ts
     putStrLn $ show res
 
 main :: IO ()
