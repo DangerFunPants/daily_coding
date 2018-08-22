@@ -10,81 +10,96 @@
 -- 
 -- There are no transaction costs and you can trade fractional quantities.
 
+
+import Control.Lens
 import qualified Data.Map as M
 
---          CAD, USD, EUR
-rates = [ [ 1.0, 0.5, 0.5 ] -- CAD
-        , [ 2.0, 1.0, 0.25 ] -- USD
-        , [ 2.0, 4.0, 1.0 ] -- EUR
-        ]
+bellmanFord' :: (Num a, Ord a)
+             => Int 
+             -> M.Map Int a 
+             -> M.Map Int Int
+             -> [(Int, Int, a)] 
+             -> Maybe (M.Map Int a, M.Map Int Int)
+bellmanFord' 0 dist preds es = do
+    validDist <- checkWeight es dist
+    return (validDist, preds)
+bellmanFord' c dist preds es = do
+    (newDist, newPreds) <- updateDist dist preds es
+    bellmanFord' (pred c) newDist newPreds es
 
-
-bellmanFord :: M.Map Int Int -> M.Map Int Int -> [(Int, Int, Int)] -> ((M.Map Int Int), (M.Map Int Int)) 
-bellmanFord dist pred ((u,v,w):edges)  = (bellmanFord nd np edges)
-    where
-        du = case (M.lookup u dist) of
-                    Nothing -> 1000000
-                    Just v -> v
-        dv = case (M.lookup v dist) of 
-                    Nothing -> 1000000
-                    Just v -> v
-        np = case (du + w) < v of
-                True -> M.insert v u pred
-                False -> pred
-        nd = case (du + w) < v of
-                True -> M.insert v (du + w) dist
-                False -> dist
-bellmanFord dist pred [] = (dist, pred)
-
-bfSearch :: [Int] -> [(Int, Int, Int)] -> Int -> ((M.Map Int Int), (M.Map Int Int))
-bfSearch vs es src = bellmanFord (M.fromList [(src, 0)]) (M.fromList []) es
-
-type a BFState = State ((Map Int Int), (Map Int Int)) a
-
-getDist :: Int -> BFState (Maybe Int)
-getDist v = state $ \s -> ((lookup v (fst s)), s)
-
-getPred :: Int -> BFState (Maybe Int)
-getPred v = state $ \s -> ((lookup v (snd s)), s)
-
-insDist :: Int -> Int -> BFState ()
-insDist k v = state $ \s -> let newDist = insert k v (fst s)
-                                in ((), (newDist, (snd s))
-
-insPred :: Int -> Int -> BFState ()
-insPred k v = state $ \s -> let newPred = insert k v (snd s)
-                                in ((), ((fst s), newPred))
-
-bellmanFord' :: [(Int, Int, Int)] -> BFState ((Map Int Int), (Map Int Int))
-bellmanFord' ((u, v, w):edges) = do
-    du <- getDist u
-    dv <- getDist v
+updateDist :: (Num a, Ord a)
+           => M.Map Int a
+           -> M.Map Int Int
+           -> [(Int, Int, a)]
+           -> Maybe (M.Map Int a, M.Map Int Int)
+updateDist dist preds [] = return (dist, preds)
+updateDist dist preds ((u, v, w):es) = do
+    du <- M.lookup u dist
+    dv <- M.lookup v dist
     if (du + w) < dv
-        then do
-            insDist v (du + w)
-            insPred v u
-        else return ()
-    bellmanFord' edges
-bellmanFord' [] = do
-    p <- getPred
-    d <- getDist
-    return (d, p)
+        then do 
+            let newPreds = M.insert v u preds
+                newDist = M.insert v (du + w) dist
+            updateDist newDist newPreds es
+        else updateDist dist preds es
 
+bellmanFord :: (Num a, Ord a)
+            => [(Int, Int, a)] 
+            -> [Int] 
+            -> Int 
+            -> Maybe (M.Map Int a, M.Map Int Int)
+bellmanFord es vs s = bellmanFord' vertC dist pred es
+    where
+        vertC = length vs
+        dist = M.fromList $ zip [1..vertC] [ if n == s then 0 else 1000000000 | n<-[1..vertC] ]
+        pred = M.fromList $ zip [1..vertC] [0..]
 
+checkWeight :: (Num a, Ord a)
+            => [(Int, Int, a)] -> M.Map Int a -> Maybe (M.Map Int a)
+checkWeight [] dist = return dist
+checkWeight ((u, v, w):es) dist = do
+    du <- M.lookup u dist
+    dv <- M.lookup v dist
+    if (du + w) < dv
+        then Nothing
+        else checkWeight es dist
 
+addEdge :: (Num a, Ord a) 
+        => (Int, Int, a) -> [(Int, Int, a)] -> [(Int, Int, a)]
+addEdge e@(u, v, w) es = e:((v, u, w):es)
 
+testBF :: IO ()
+testBF = do
+    let ts = [ (1, 2, 1)
+             , (1, 3, -3)
+             , (2, 4, 1)
+             , (2, 3, 1)
+             , (3, 5, 1)
+             , (4, 5, 1)
+             , (4, 6, 1)
+             ]
+        es = foldl (\l t -> addEdge t l) [] ts
+        res = bellmanFord es [1..6] 1
+    putStrLn $ show es
+    putStrLn $ show res
 
+testArbitrage :: IO ()
+testArbitrage = do
+    let ts = [ (1, 2, 0.33)
+             , (2, 3, 277.5)
+             , (3, 1, 0.0115)
+             ]
+        es = fmap (\(u, v, w) -> (u,v,(-(log w / log 10)))) ts
+        res = bellmanFord es [1..3] 1
+    putStrLn $ show res
 
+test1 :: IO ()
+test1 = do
+    let ts = [ (1, 2, 2)
+             , (2, 1, -3)
+             ]
+        res = bellmanFord ts [1..2] 1
+    putStrLn $ show res
 
-
-
-
-
-
-
-
-
-
-
-
-
+main :: IO ()
+main = testArbitrage
