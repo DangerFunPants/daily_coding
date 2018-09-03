@@ -22,12 +22,14 @@ countIslands (p:ps) = 1 + (countIslands adj)
 closure :: (Int, Int) -> [(Int, Int)] -> [(Int, Int)]
 closure p rest = recCall
     where
-        -- find all points adj to the current point
+        -- find all points adj. to the current point
         adjs = [ p' | p' <- rest, isAdj p p' ]
         -- now remove the adjacent points from the master list.
         remd = [ p' | p' <- rest, not (isAdj p p') ]
         -- find the closure of the list of the curent adjacent points
-        -- under the adjacency relation.
+        -- under the adjacency relation defined by isAdj.
+        -- This will compute the "island" relation which is the
+        -- transitive closure of a point under the adjacency relation.
         recCall = foldl (\l p -> closure p l) remd adjs
 
 
