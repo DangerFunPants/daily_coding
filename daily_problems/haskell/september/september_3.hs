@@ -13,7 +13,8 @@ testIfSet x y b = (x .&. mult) .|. (y .&. (complement mult))
 
 test1 :: IO ()
 test1 = do
-    let res = testIfSet 25 50 0
+    let ts = [ 0, 1 ]
+        res = fmap (testIfSet 25 50) ts
     putStrLn $ show res
 
 main :: IO ()
